@@ -3,92 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Squircle Office</title>
+    <title>Squircle Office Suite</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
     <style>
-        /* The Apple "Squircle" curvature */
-        .squircle {
-            border-radius: 2.5rem;
-        }
-        /* A4 Paper Styling */
-        .a4-page {
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display&family=Roboto+Mono&display=swap');
+        
+        body { background-color: #f5f5f7; font-family: 'Inter', sans-serif; }
+        .squircle { border-radius: 2rem; }
+        .btn-squircle { border-radius: 0.75rem; transition: all 0.2s; }
+        
+        /* A4 Document Styling */
+        .a4-container {
             width: 210mm;
             min-height: 297mm;
-            padding: 20mm;
-            margin: 10px auto;
+            padding: 25mm; /* Standard Margins */
+            margin: 20px auto;
             background: white;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.05);
             outline: none;
+            overflow-wrap: break-word;
         }
-        body { background-color: #f5f5f7; }
+
+        /* Ribbon glass effect */
+        .ribbon {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            position: sticky;
+            top: 1rem;
+            z-index: 50;
+        }
+
+        /* Hide scrollbar but allow scrolling */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="p-8">
+<body class="p-4 md:p-8">
 
-    <nav class="max-w-4xl mx-auto mb-8 bg-white/70 backdrop-blur-md p-3 squircle border border-white flex items-center justify-between shadow-lg">
-        <div class="flex gap-2 bg-gray-100 p-1 rounded-3xl">
-            <button onclick="switchMode('word')" class="px-6 py-2 rounded-2xl bg-white shadow-sm font-medium">Word</button>
-            <button onclick="switchMode('ppt')" class="px-6 py-2 rounded-2xl hover:bg-white/50 transition">Slides</button>
-            <button onclick="switchMode('note')" class="px-6 py-2 rounded-2xl hover:bg-white/50 transition">Notepad</button>
-        </div>
-        
-        <div class="flex gap-4 px-4 border-l border-gray-200">
-            <button onclick="execCommand('bold')" class="hover:text-blue-600"><i data-lucide="bold"></i></button>
-            <button onclick="execCommand('italic')" class="hover:text-blue-600"><i data-lucide="italic"></i></button>
-            <button onclick="saveFile()" class="text-blue-500 font-bold ml-4">Save</button>
-        </div>
-    </nav>
-
-    <main id="editor-container" class="flex flex-col items-center">
-        <div id="word-editor" class="a4-page transition-all" contenteditable="true">
-            <h1 class="text-4xl font-bold mb-6">Untitled Document</h1>
-            <p>Start writing your masterpiece here...</p>
-        </div>
-
-        <div id="ppt-editor" class="hidden w-[800px] h-[450px] bg-white squircle shadow-2xl flex items-center justify-center p-12 border border-gray-100">
-            <div class="text-center w-full">
-                <input type="text" placeholder="Click to add Title" class="text-5xl font-extrabold text-center w-full outline-none">
-                <div class="h-1 w-24 bg-blue-500 mx-auto my-6"></div>
-                <textarea placeholder="Add subtitle" class="text-xl text-gray-500 text-center w-full outline-none resize-none"></textarea>
+    <div class="max-w-6xl mx-auto">
+        <nav class="ribbon p-3 squircle shadow-xl mb-8 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex bg-gray-200/50 p-1 rounded-2xl">
+                <button onclick="switchMode('word')" id="btn-word" class="px-4 py-2 btn-squircle bg-white shadow-sm flex items-center gap-2"><i data-lucide="file-text" size="18"></i> Word</button>
+                <button onclick="switchMode('ppt')" id="btn-ppt" class="px-4 py-2 btn-squircle flex items-center gap-2"><i data-lucide="presentation" size="18"></i> Slides</button>
+                <button onclick="switchMode('note')" id="btn-note" class="px-4 py-2 btn-squircle flex items-center gap-2"><i data-lucide="sticky-note" size="18"></i> Note</button>
             </div>
-        </div>
 
-        <textarea id="note-editor" class="hidden w-full max-w-2xl h-[500px] p-10 squircle shadow-inner bg-white text-lg outline-none" placeholder="Just a quick note..."></textarea>
-    </main>
+            <div id="formatting-tools" class="flex flex-wrap items-center gap-1 bg-white/50 p-1 rounded-2xl border border-gray-100">
+                <select onchange="exec('fontName', this.value)" class="bg-transparent px-2 py-1 outline-none text-sm border-r mr-1">
+                    <option value="Inter">Inter</option>
+                    <option value="Arial">Arial</option>
+                    <option value="Playfair Display">Serif</option>
+                    <option value="Roboto Mono">Mono</option>
+                </select>
+
+                <select onchange="exec('fontSize', this.value)" class="bg-transparent px-2 py-1 outline-none text-sm border-r mr-1">
+                    <option value="3">Normal</option>
+                    <option value="1">Small</option>
+                    <option value="5">Large</option>
+                    <option value="7">Huge</option>
+                </select>
+
+                <button onclick="exec('bold')" class="p-2 hover:bg-gray-200 btn-squircle"><i data-lucide="bold" size="18"></i></button>
+                <button onclick="exec('italic')" class="p-2 hover:bg-gray-200 btn-squircle"><i data-lucide="italic" size="18"></i></button>
+                <button onclick="exec('underline')" class="p-2 hover:bg-gray-200 btn-squircle"><i data-lucide="underline" size="18"></i></button>
+                
+                <div class="w-px h-6 bg-gray-300 mx-1"></div>
+                
+                <button onclick="exec('justifyLeft')" class="p-2 hover:bg-gray-200 btn-squircle"><i data-lucide="align-left" size="18"></i></button>
+                <button onclick="exec('justifyCenter')" class="p-2 hover:bg-gray-200 btn-squircle"><i data-lucide="align-center" size="18"></i></button>
+                <button onclick="exec('insertUnorderedList')" class="p-2 hover:bg-gray-200 btn-squircle"><i data-lucide="list" size="18"></i></button>
+                
+                <div class="w-px h-6 bg-gray-300 mx-1"></div>
+                
+                <div class="flex items-center gap-1 px-2">
+                    <input type="color" onchange="exec('foreColor', this.value)" class="w-6 h-6 border-none bg-transparent cursor-pointer">
+                    <i data-lucide="type" size="14"></i>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button onclick="exportPDF()" class="bg-blue-600 text-white px-5 py-2 btn-squircle flex items-center gap-2 hover:bg-blue-700 shadow-lg shadow-blue-200">
+                    <i data-lucide="download" size="18"></i> Export
+                </button>
+            </div>
+        </nav>
+
+        <main class="flex justify-center pb-20">
+            <div id="word-editor" class="a4-container" contenteditable="true">
+                <h1 style="font-size: 2.5rem; font-weight: bold; margin-bottom: 1rem;">Welcome to your new Suite</h1>
+                <p>This document uses the Apple Squircle policy for UI elements. Start typing to see it in action.</p>
+            </div>
+
+            <div id="ppt-editor" class="hidden flex flex-col gap-6 w-full max-w-4xl">
+                <div class="w-full aspect-video bg-white squircle shadow-2xl p-16 flex flex-col justify-center items-center text-center border border-gray-100">
+                    <input type="text" placeholder="Presentation Title" class="text-6xl font-bold w-full text-center outline-none bg-transparent">
+                    <div class="h-1.5 w-32 bg-blue-500 my-8 rounded-full"></div>
+                    <textarea placeholder="Click to add subtitle" class="text-2xl text-gray-400 w-full text-center outline-none bg-transparent resize-none"></textarea>
+                </div>
+                <p class="text-center text-gray-400 text-sm">Slide 1 of 1</p>
+            </div>
+
+            <div id="note-editor" class="hidden w-full max-w-2xl">
+                <textarea class="w-full h-[600px] p-12 squircle bg-white shadow-inner text-xl outline-none border-none resize-none" placeholder="Quick thoughts go here..."></textarea>
+            </div>
+        </main>
+    </div>
+
+    <div class="fixed bottom-8 left-1/2 -translate-x-1/2 flex gap-3 p-2 bg-white/80 backdrop-blur-xl squircle shadow-2xl border border-white">
+        <button onclick="exec('undo')" class="p-4 hover:bg-gray-100 btn-squircle"><i data-lucide="undo-2"></i></button>
+        <button onclick="exec('redo')" class="p-4 hover:bg-gray-100 btn-squircle"><i data-lucide="redo-2"></i></button>
+        <button onclick="window.print()" class="p-4 hover:bg-gray-100 btn-squircle"><i data-lucide="printer"></i></button>
+    </div>
 
     <script>
-        // Initialize Icons
+        // 1. Initialize Icons
         lucide.createIcons();
 
-        // Mode Switching Logic
+        // 2. Formatting Engine
+        function exec(command, value = null) {
+            document.execCommand(command, false, value);
+        }
+
+        // 3. Mode Switcher Logic
         function switchMode(mode) {
-            const word = document.getElementById('word-editor');
-            const ppt = document.getElementById('ppt-editor');
-            const note = document.getElementById('note-editor');
+            const sections = {
+                word: document.getElementById('word-editor'),
+                ppt: document.getElementById('ppt-editor'),
+                note: document.getElementById('note-editor')
+            };
+            const tools = document.getElementById('formatting-tools');
+            
+            // Toggle Visibility
+            Object.keys(sections).forEach(key => {
+                sections[key].classList.add('hidden');
+                document.getElementById(`btn-${key}`).classList.remove('bg-white', 'shadow-sm');
+            });
 
-            // Hide all
-            [word, ppt, note].forEach(el => el.classList.add('hidden'));
+            sections[mode].classList.remove('hidden');
+            document.getElementById(`btn-${mode}`).classList.add('bg-white', 'shadow-sm');
 
-            // Show selected
-            if (mode === 'word') word.classList.remove('hidden');
-            if (mode === 'ppt') ppt.classList.remove('hidden');
-            if (mode === 'note') note.classList.remove('hidden');
+            // Hide formatting tools if not in word mode
+            mode === 'word' ? tools.classList.remove('invisible') : tools.classList.add('invisible');
         }
 
-        // Basic Text Formatting Logic
-        function execCommand(command) {
-            document.execCommand(command, false, null);
-        }
-
-        // Simple Save Logic (Downloads as Text)
-        function saveFile() {
-            const text = document.getElementById('word-editor').innerText;
-            const blob = new Blob([text], { type: 'text/plain' });
-            const anchor = document.createElement('a');
-            anchor.download = 'document.txt';
-            anchor.href = window.URL.createObjectURL(blob);
-            anchor.click();
+        // 4. Export to PDF (Advanced Feature)
+        function exportPDF() {
+            const element = document.getElementById('word-editor');
+            const opt = {
+                margin:       0,
+                filename:     'my-document.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
         }
     </script>
 </body>
