@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Squircle Office Suite</title>
+    <title>Squircle Office Suite Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -11,156 +11,164 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display&family=Roboto+Mono&display=swap');
         
-        body { background-color: #f5f5f7; font-family: 'Inter', sans-serif; }
+        body { background-color: #f5f5f7; font-family: 'Inter', sans-serif; overflow-x: hidden; }
         .squircle { border-radius: 2rem; }
         .btn-squircle { border-radius: 0.75rem; transition: all 0.2s; }
         
-        /* A4 Document Styling */
         .a4-container {
             width: 210mm;
             min-height: 297mm;
-            padding: 25mm; /* Standard Margins */
+            padding: 25mm;
             margin: 20px auto;
             background: white;
             box-shadow: 0 20px 50px rgba(0,0,0,0.05);
             outline: none;
-            overflow-wrap: break-word;
         }
 
-        /* Ribbon glass effect */
         .ribbon {
-            background: rgba(255, 255, 255, 0.75);
+            background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.5);
             position: sticky;
             top: 1rem;
             z-index: 50;
         }
 
-        /* Hide scrollbar but allow scrolling */
-        .no-scrollbar::-webkit-scrollbar { display: none; }
+        /* Custom selection color for Apple feel */
+        ::selection { background: rgba(0, 122, 255, 0.2); }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-4">
 
     <div class="max-w-6xl mx-auto">
         <nav class="ribbon p-3 squircle shadow-xl mb-8 flex flex-wrap items-center justify-between gap-4">
             <div class="flex bg-gray-200/50 p-1 rounded-2xl">
                 <button onclick="switchMode('word')" id="btn-word" class="px-4 py-2 btn-squircle bg-white shadow-sm flex items-center gap-2"><i data-lucide="file-text" size="18"></i> Word</button>
-                <button onclick="switchMode('ppt')" id="btn-ppt" class="px-4 py-2 btn-squircle flex items-center gap-2"><i data-lucide="presentation" size="18"></i> Slides</button>
+                <button onclick="switchMode('ppt')" id="btn-ppt" class="px-4 py-2 btn-squircle flex items-center gap-2"><i data-lucide="presentation" size="18"></i> PPT</button>
                 <button onclick="switchMode('note')" id="btn-note" class="px-4 py-2 btn-squircle flex items-center gap-2"><i data-lucide="sticky-note" size="18"></i> Note</button>
             </div>
 
             <div id="formatting-tools" class="flex flex-wrap items-center gap-1 bg-white/50 p-1 rounded-2xl border border-gray-100">
-                <select onchange="exec('fontName', this.value)" class="bg-transparent px-2 py-1 outline-none text-sm border-r mr-1">
+                <select onchange="exec('fontName', this.value)" class="bg-transparent px-2 py-1 outline-none text-sm border-r">
                     <option value="Inter">Inter</option>
                     <option value="Arial">Arial</option>
                     <option value="Playfair Display">Serif</option>
                     <option value="Roboto Mono">Mono</option>
                 </select>
 
-                <select onchange="exec('fontSize', this.value)" class="bg-transparent px-2 py-1 outline-none text-sm border-r mr-1">
-                    <option value="3">Normal</option>
-                    <option value="1">Small</option>
-                    <option value="5">Large</option>
-                    <option value="7">Huge</option>
-                </select>
-
                 <button onclick="exec('bold')" class="p-2 hover:bg-gray-200 btn-squircle"><i data-lucide="bold" size="18"></i></button>
                 <button onclick="exec('italic')" class="p-2 hover:bg-gray-200 btn-squircle"><i data-lucide="italic" size="18"></i></button>
-                <button onclick="exec('underline')" class="p-2 hover:bg-gray-200 btn-squircle"><i data-lucide="underline" size="18"></i></button>
-                
-                <div class="w-px h-6 bg-gray-300 mx-1"></div>
-                
-                <button onclick="exec('justifyLeft')" class="p-2 hover:bg-gray-200 btn-squircle"><i data-lucide="align-left" size="18"></i></button>
-                <button onclick="exec('justifyCenter')" class="p-2 hover:bg-gray-200 btn-squircle"><i data-lucide="align-center" size="18"></i></button>
                 <button onclick="exec('insertUnorderedList')" class="p-2 hover:bg-gray-200 btn-squircle"><i data-lucide="list" size="18"></i></button>
                 
                 <div class="w-px h-6 bg-gray-300 mx-1"></div>
                 
-                <div class="flex items-center gap-1 px-2">
-                    <input type="color" onchange="exec('foreColor', this.value)" class="w-6 h-6 border-none bg-transparent cursor-pointer">
-                    <i data-lucide="type" size="14"></i>
-                </div>
+                <button onclick="findReplace()" class="p-2 hover:bg-gray-200 btn-squircle"><i data-lucide="search" size="18"></i></button>
+                <input type="color" onchange="exec('foreColor', this.value)" class="w-6 h-6 border-none bg-transparent cursor-pointer mx-2">
             </div>
 
             <div class="flex items-center gap-2">
-                <button onclick="exportPDF()" class="bg-blue-600 text-white px-5 py-2 btn-squircle flex items-center gap-2 hover:bg-blue-700 shadow-lg shadow-blue-200">
-                    <i data-lucide="download" size="18"></i> Export
+                <button onclick="exportPDF()" class="bg-black text-white px-5 py-2 btn-squircle flex items-center gap-2 hover:bg-gray-800 shadow-lg">
+                    <i data-lucide="download" size="18"></i> Export PDF
                 </button>
             </div>
         </nav>
 
-        <main class="flex justify-center pb-20">
-            <div id="word-editor" class="a4-container" contenteditable="true">
-                <h1 style="font-size: 2.5rem; font-weight: bold; margin-bottom: 1rem;">Welcome to your new Suite</h1>
-                <p>This document uses the Apple Squircle policy for UI elements. Start typing to see it in action.</p>
+        <main class="flex justify-center pb-24">
+            <div id="word-editor" class="a4-container" contenteditable="true" oninput="updateStats()">
+                <h1 style="font-size: 2.5rem; font-weight: bold;">My Document</h1>
+                <p>Start typing your content here...</p>
             </div>
 
-            <div id="ppt-editor" class="hidden flex flex-col gap-6 w-full max-w-4xl">
-                <div class="w-full aspect-video bg-white squircle shadow-2xl p-16 flex flex-col justify-center items-center text-center border border-gray-100">
-                    <input type="text" placeholder="Presentation Title" class="text-6xl font-bold w-full text-center outline-none bg-transparent">
-                    <div class="h-1.5 w-32 bg-blue-500 my-8 rounded-full"></div>
-                    <textarea placeholder="Click to add subtitle" class="text-2xl text-gray-400 w-full text-center outline-none bg-transparent resize-none"></textarea>
+            <div id="ppt-editor" class="hidden w-full max-w-4xl space-y-8">
+                <div id="slide-container" class="space-y-8">
+                    <div class="aspect-video bg-white squircle shadow-2xl p-16 flex flex-col justify-center items-center text-center border border-gray-100">
+                        <input type="text" placeholder="Click to add Title" class="text-5xl font-bold w-full text-center outline-none">
+                        <div class="h-1.5 w-24 bg-blue-500 my-6 rounded-full"></div>
+                        <textarea placeholder="Subtitle goes here" class="text-xl text-gray-400 w-full text-center outline-none resize-none bg-transparent"></textarea>
+                    </div>
                 </div>
-                <p class="text-center text-gray-400 text-sm">Slide 1 of 1</p>
+                <button onclick="addSlide()" class="w-full py-4 border-2 border-dashed border-gray-300 rounded-3xl text-gray-400 hover:border-blue-400 hover:text-blue-400 transition-all font-medium">+ Add New Slide</button>
             </div>
 
             <div id="note-editor" class="hidden w-full max-w-2xl">
-                <textarea class="w-full h-[600px] p-12 squircle bg-white shadow-inner text-xl outline-none border-none resize-none" placeholder="Quick thoughts go here..."></textarea>
+                <textarea id="raw-note" class="w-full h-[500px] p-10 squircle bg-white shadow-xl text-lg outline-none border-none resize-none" placeholder="Quick, messy thoughts..."></textarea>
             </div>
         </main>
     </div>
 
-    <div class="fixed bottom-8 left-1/2 -translate-x-1/2 flex gap-3 p-2 bg-white/80 backdrop-blur-xl squircle shadow-2xl border border-white">
-        <button onclick="exec('undo')" class="p-4 hover:bg-gray-100 btn-squircle"><i data-lucide="undo-2"></i></button>
-        <button onclick="exec('redo')" class="p-4 hover:bg-gray-100 btn-squircle"><i data-lucide="redo-2"></i></button>
-        <button onclick="window.print()" class="p-4 hover:bg-gray-100 btn-squircle"><i data-lucide="printer"></i></button>
-    </div>
+    <footer class="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-6 px-6 py-3 bg-white/70 backdrop-blur-xl squircle shadow-2xl border border-white/50">
+        <div class="flex gap-1 border-r pr-6">
+            <button onclick="exec('undo')" class="p-2 hover:bg-gray-100 rounded-xl"><i data-lucide="undo" size="18"></i></button>
+            <button onclick="exec('redo')" class="p-2 hover:bg-gray-100 rounded-xl"><i data-lucide="redo" size="18"></i></button>
+        </div>
+        <div id="stat-count" class="text-xs font-semibold text-gray-500 uppercase tracking-widest">0 Words</div>
+        <div class="text-[10px] bg-green-500/10 text-green-600 px-2 py-1 rounded-md font-bold uppercase">Auto-Saved</div>
+    </footer>
 
     <script>
-        // 1. Initialize Icons
+        // Initialization
         lucide.createIcons();
 
-        // 2. Formatting Engine
-        function exec(command, value = null) {
-            document.execCommand(command, false, value);
-        }
+        // Core Functions
+        function exec(cmd, val = null) { document.execCommand(cmd, false, val); }
 
-        // 3. Mode Switcher Logic
         function switchMode(mode) {
-            const sections = {
-                word: document.getElementById('word-editor'),
-                ppt: document.getElementById('ppt-editor'),
-                note: document.getElementById('note-editor')
-            };
-            const tools = document.getElementById('formatting-tools');
+            const sections = ['word-editor', 'ppt-editor', 'note-editor'];
+            sections.forEach(s => document.getElementById(s).classList.add('hidden'));
+            document.getElementById(mode + '-editor').classList.remove('hidden');
             
-            // Toggle Visibility
-            Object.keys(sections).forEach(key => {
-                sections[key].classList.add('hidden');
-                document.getElementById(`btn-${key}`).classList.remove('bg-white', 'shadow-sm');
+            // UI Button styling
+            ['word', 'ppt', 'note'].forEach(m => {
+                document.getElementById('btn-'+m).classList.remove('bg-white', 'shadow-sm');
             });
-
-            sections[mode].classList.remove('hidden');
-            document.getElementById(`btn-${mode}`).classList.add('bg-white', 'shadow-sm');
-
-            // Hide formatting tools if not in word mode
-            mode === 'word' ? tools.classList.remove('invisible') : tools.classList.add('invisible');
+            document.getElementById('btn-'+mode).classList.add('bg-white', 'shadow-sm');
+            
+            // Toggle toolbar visibility
+            document.getElementById('formatting-tools').style.opacity = (mode === 'word') ? "1" : "0.3";
         }
 
-        // 4. Export to PDF (Advanced Feature)
+        // Feature: Find and Replace
+        function findReplace() {
+            const find = prompt("Search for:");
+            if (!find) return;
+            const replace = prompt("Replace with:");
+            const editor = document.getElementById('word-editor');
+            editor.innerHTML = editor.innerHTML.split(find).join(replace);
+        }
+
+        // Feature: Stats Counter
+        function updateStats() {
+            const text = document.getElementById('word-editor').innerText;
+            const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+            document.getElementById('stat-count').innerText = `${words} Words`;
+        }
+
+        // Feature: PPT Slide Manager
+        function addSlide() {
+            const container = document.getElementById('slide-container');
+            const newSlide = container.firstElementChild.cloneNode(true);
+            newSlide.querySelectorAll('input, textarea').forEach(el => el.value = "");
+            container.appendChild(newSlide);
+        }
+
+        // Feature: Export PDF
         function exportPDF() {
             const element = document.getElementById('word-editor');
-            const opt = {
-                margin:       0,
-                filename:     'my-document.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2 },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
+            const opt = { margin: 10, filename: 'my_document.pdf', html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }};
             html2pdf().set(opt).from(element).save();
         }
+
+        // Feature: Auto-Save to LocalStorage
+        setInterval(() => {
+            localStorage.setItem('office_word', document.getElementById('word-editor').innerHTML);
+            localStorage.setItem('office_note', document.getElementById('raw-note').value);
+        }, 5000);
+
+        window.onload = () => {
+            if(localStorage.getItem('office_word')) document.getElementById('word-editor').innerHTML = localStorage.getItem('office_word');
+            if(localStorage.getItem('office_note')) document.getElementById('raw-note').value = localStorage.getItem('office_note');
+            updateStats();
+        };
     </script>
 </body>
 </html>
