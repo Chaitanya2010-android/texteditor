@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Squircle Office</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* The Apple "Squircle" curvature */
+        .squircle {
+            border-radius: 2.5rem;
+        }
+        /* A4 Paper Styling */
+        .a4-page {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 20mm;
+            margin: 10px auto;
+            background: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            outline: none;
+        }
+        body { background-color: #f5f5f7; }
+    </style>
+</head>
+<body class="p-8">
+
+    <nav class="max-w-4xl mx-auto mb-8 bg-white/70 backdrop-blur-md p-3 squircle border border-white flex items-center justify-between shadow-lg">
+        <div class="flex gap-2 bg-gray-100 p-1 rounded-3xl">
+            <button onclick="switchMode('word')" class="px-6 py-2 rounded-2xl bg-white shadow-sm font-medium">Word</button>
+            <button onclick="switchMode('ppt')" class="px-6 py-2 rounded-2xl hover:bg-white/50 transition">Slides</button>
+            <button onclick="switchMode('note')" class="px-6 py-2 rounded-2xl hover:bg-white/50 transition">Notepad</button>
+        </div>
+        
+        <div class="flex gap-4 px-4 border-l border-gray-200">
+            <button onclick="execCommand('bold')" class="hover:text-blue-600"><i data-lucide="bold"></i></button>
+            <button onclick="execCommand('italic')" class="hover:text-blue-600"><i data-lucide="italic"></i></button>
+            <button onclick="saveFile()" class="text-blue-500 font-bold ml-4">Save</button>
+        </div>
+    </nav>
+
+    <main id="editor-container" class="flex flex-col items-center">
+        <div id="word-editor" class="a4-page transition-all" contenteditable="true">
+            <h1 class="text-4xl font-bold mb-6">Untitled Document</h1>
+            <p>Start writing your masterpiece here...</p>
+        </div>
+
+        <div id="ppt-editor" class="hidden w-[800px] h-[450px] bg-white squircle shadow-2xl flex items-center justify-center p-12 border border-gray-100">
+            <div class="text-center w-full">
+                <input type="text" placeholder="Click to add Title" class="text-5xl font-extrabold text-center w-full outline-none">
+                <div class="h-1 w-24 bg-blue-500 mx-auto my-6"></div>
+                <textarea placeholder="Add subtitle" class="text-xl text-gray-500 text-center w-full outline-none resize-none"></textarea>
+            </div>
+        </div>
+
+        <textarea id="note-editor" class="hidden w-full max-w-2xl h-[500px] p-10 squircle shadow-inner bg-white text-lg outline-none" placeholder="Just a quick note..."></textarea>
+    </main>
+
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        // Mode Switching Logic
+        function switchMode(mode) {
+            const word = document.getElementById('word-editor');
+            const ppt = document.getElementById('ppt-editor');
+            const note = document.getElementById('note-editor');
+
+            // Hide all
+            [word, ppt, note].forEach(el => el.classList.add('hidden'));
+
+            // Show selected
+            if (mode === 'word') word.classList.remove('hidden');
+            if (mode === 'ppt') ppt.classList.remove('hidden');
+            if (mode === 'note') note.classList.remove('hidden');
+        }
+
+        // Basic Text Formatting Logic
+        function execCommand(command) {
+            document.execCommand(command, false, null);
+        }
+
+        // Simple Save Logic (Downloads as Text)
+        function saveFile() {
+            const text = document.getElementById('word-editor').innerText;
+            const blob = new Blob([text], { type: 'text/plain' });
+            const anchor = document.createElement('a');
+            anchor.download = 'document.txt';
+            anchor.href = window.URL.createObjectURL(blob);
+            anchor.click();
+        }
+    </script>
+</body>
+</html>
