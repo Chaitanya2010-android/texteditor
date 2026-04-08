@@ -3,172 +3,210 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Squircle Office Suite Pro</title>
+    <title>Office Ultra</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display&family=Roboto+Mono&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+        body { background-color: #f5f5f7; font-family: 'Inter', sans-serif; transition: background 0.3s ease; }
+        .squircle { border-radius: 1.5rem; }
+        .btn-sm { border-radius: 0.5rem; transition: all 0.2s; padding: 4px; }
         
-        body { background-color: #f5f5f7; font-family: 'Inter', sans-serif; overflow-x: hidden; }
-        .squircle { border-radius: 2rem; }
-        .btn-squircle { border-radius: 0.75rem; transition: all 0.2s; }
-        
+        /* A4 Logic */
         .a4-container {
             width: 210mm;
             min-height: 297mm;
-            padding: 25mm;
-            margin: 20px auto;
+            padding: 20mm;
+            margin: 10px auto;
             background: white;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
             outline: none;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
+        .landscape { width: 297mm; min-height: 210mm; }
 
-        .ribbon {
+        .ribbon-thin {
             background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
             position: sticky;
-            top: 1rem;
-            z-index: 50;
+            top: 0;
+            z-index: 100;
         }
-
-        /* Custom selection color for Apple feel */
-        ::selection { background: rgba(0, 122, 255, 0.2); }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background: white;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            border: 1px solid rgba(0,0,0,0.05);
+            width: 280px;
+            padding: 20px;
+            z-index: 1000;
+        }
     </style>
 </head>
-<body class="p-4">
+<body>
 
-    <div class="max-w-6xl mx-auto">
-        <nav class="ribbon p-3 squircle shadow-xl mb-8 flex flex-wrap items-center justify-between gap-4">
-            <div class="flex bg-gray-200/50 p-1 rounded-2xl">
-                <button onclick="switchMode('word')" id="btn-word" class="px-4 py-2 btn-squircle bg-white shadow-sm flex items-center gap-2"><i data-lucide="file-text" size="18"></i> Word</button>
-                <button onclick="switchMode('ppt')" id="btn-ppt" class="px-4 py-2 btn-squircle flex items-center gap-2"><i data-lucide="presentation" size="18"></i> PPT</button>
-                <button onclick="switchMode('note')" id="btn-note" class="px-4 py-2 btn-squircle flex items-center gap-2"><i data-lucide="sticky-note" size="18"></i> Note</button>
+    <nav class="ribbon-thin px-4 py-2 flex items-center justify-between shadow-sm">
+        <div class="flex items-center gap-4">
+            <div class="flex bg-gray-200/60 p-0.5 rounded-lg text-xs font-medium">
+                <button onclick="switchMode('word')" id="btn-word" class="px-3 py-1 rounded-md bg-white shadow-sm">Word</button>
+                <button onclick="switchMode('ppt')" id="btn-ppt" class="px-3 py-1 rounded-md">PPT</button>
+                <button onclick="switchMode('note')" id="btn-note" class="px-3 py-1 rounded-md">Note</button>
             </div>
+        </div>
 
-            <div id="formatting-tools" class="flex flex-wrap items-center gap-1 bg-white/50 p-1 rounded-2xl border border-gray-100">
-                <select onchange="exec('fontName', this.value)" class="bg-transparent px-2 py-1 outline-none text-sm border-r">
-                    <option value="Inter">Inter</option>
-                    <option value="Arial">Arial</option>
-                    <option value="Playfair Display">Serif</option>
-                    <option value="Roboto Mono">Mono</option>
-                </select>
+        <div id="tools" class="flex items-center gap-1">
+            <button onclick="exec('bold')" class="btn-sm hover:bg-gray-100"><i data-lucide="bold" size="16"></i></button>
+            <button onclick="exec('italic')" class="btn-sm hover:bg-gray-100"><i data-lucide="italic" size="16"></i></button>
+            <button onclick="exec('underline')" class="btn-sm hover:bg-gray-100"><i data-lucide="underline" size="16"></i></button>
+            <div class="w-px h-4 bg-gray-300 mx-1"></div>
+            <button onclick="exec('justifyLeft')" class="btn-sm hover:bg-gray-100"><i data-lucide="align-left" size="16"></i></button>
+            <button onclick="exec('justifyCenter')" class="btn-sm hover:bg-gray-100"><i data-lucide="align-center" size="16"></i></button>
+            <div class="w-px h-4 bg-gray-300 mx-1"></div>
+            <input type="color" onchange="exec('foreColor', this.value)" class="w-5 h-5 cursor-pointer border-none bg-transparent">
+        </div>
 
-                <button onclick="exec('bold')" class="p-2 hover:bg-gray-200 btn-squircle"><i data-lucide="bold" size="18"></i></button>
-                <button onclick="exec('italic')" class="p-2 hover:bg-gray-200 btn-squircle"><i data-lucide="italic" size="18"></i></button>
-                <button onclick="exec('insertUnorderedList')" class="p-2 hover:bg-gray-200 btn-squircle"><i data-lucide="list" size="18"></i></button>
-                
-                <div class="w-px h-6 bg-gray-300 mx-1"></div>
-                
-                <button onclick="findReplace()" class="p-2 hover:bg-gray-200 btn-squircle"><i data-lucide="search" size="18"></i></button>
-                <input type="color" onchange="exec('foreColor', this.value)" class="w-6 h-6 border-none bg-transparent cursor-pointer mx-2">
+        <button onclick="exportPDF()" class="text-xs bg-black text-white px-3 py-1.5 rounded-lg font-medium hover:bg-gray-800 transition">Export</button>
+    </nav>
+
+    <main class="flex justify-center p-4">
+        <div id="word-editor" class="a4-container" contenteditable="true" oninput="updateStats()">
+            <h1 class="text-3xl font-bold">New Document</h1>
+            <p>Start your project...</p>
+        </div>
+
+        <div id="ppt-editor" class="hidden w-full max-w-4xl space-y-4">
+            <div class="aspect-video bg-white squircle shadow-xl p-12 flex flex-col justify-center items-center text-center border border-gray-100">
+                <input type="text" placeholder="Title" class="text-4xl font-bold w-full text-center outline-none">
+                <textarea placeholder="Subtitle" class="text-lg text-gray-400 w-full text-center outline-none resize-none mt-4"></textarea>
             </div>
+        </div>
 
-            <div class="flex items-center gap-2">
-                <button onclick="exportPDF()" class="bg-black text-white px-5 py-2 btn-squircle flex items-center gap-2 hover:bg-gray-800 shadow-lg">
-                    <i data-lucide="download" size="18"></i> Export PDF
-                </button>
-            </div>
-        </nav>
+        <div id="note-editor" class="hidden w-full max-w-2xl">
+            <textarea id="raw-note" class="w-full h-[500px] p-8 squircle bg-white shadow-xl text-md outline-none border-none resize-none" placeholder="Quick note..."></textarea>
+        </div>
+    </main>
 
-        <main class="flex justify-center pb-24">
-            <div id="word-editor" class="a4-container" contenteditable="true" oninput="updateStats()">
-                <h1 style="font-size: 2.5rem; font-weight: bold;">My Document</h1>
-                <p>Start typing your content here...</p>
-            </div>
-
-            <div id="ppt-editor" class="hidden w-full max-w-4xl space-y-8">
-                <div id="slide-container" class="space-y-8">
-                    <div class="aspect-video bg-white squircle shadow-2xl p-16 flex flex-col justify-center items-center text-center border border-gray-100">
-                        <input type="text" placeholder="Click to add Title" class="text-5xl font-bold w-full text-center outline-none">
-                        <div class="h-1.5 w-24 bg-blue-500 my-6 rounded-full"></div>
-                        <textarea placeholder="Subtitle goes here" class="text-xl text-gray-400 w-full text-center outline-none resize-none bg-transparent"></textarea>
-                    </div>
-                </div>
-                <button onclick="addSlide()" class="w-full py-4 border-2 border-dashed border-gray-300 rounded-3xl text-gray-400 hover:border-blue-400 hover:text-blue-400 transition-all font-medium">+ Add New Slide</button>
-            </div>
-
-            <div id="note-editor" class="hidden w-full max-w-2xl">
-                <textarea id="raw-note" class="w-full h-[500px] p-10 squircle bg-white shadow-xl text-lg outline-none border-none resize-none" placeholder="Quick, messy thoughts..."></textarea>
-            </div>
-        </main>
+    <div class="fixed bottom-4 left-4 bg-white/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-black/5 shadow-sm flex items-center gap-3 text-[10px] font-bold text-gray-500 tracking-tighter">
+        <div id="stat-count">0 WORDS</div>
+        <div class="w-1 h-1 bg-green-500 rounded-full"></div>
+        <div id="save-status">SAVED</div>
     </div>
 
-    <footer class="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-6 px-6 py-3 bg-white/70 backdrop-blur-xl squircle shadow-2xl border border-white/50">
-        <div class="flex gap-1 border-r pr-6">
-            <button onclick="exec('undo')" class="p-2 hover:bg-gray-100 rounded-xl"><i data-lucide="undo" size="18"></i></button>
-            <button onclick="exec('redo')" class="p-2 hover:bg-gray-100 rounded-xl"><i data-lucide="redo" size="18"></i></button>
+    <div class="fixed bottom-4 right-4 flex items-center gap-2">
+        <button onclick="toggleModal('ai-modal')" class="p-3 bg-blue-600 text-white rounded-full shadow-lg hover:scale-105 transition active:scale-95">
+            <i data-lucide="sparkles" size="20"></i>
+        </button>
+        <button onclick="toggleModal('settings-modal')" class="p-3 bg-white text-gray-700 rounded-full shadow-lg border border-gray-100 hover:scale-105 transition active:scale-95">
+            <i data-lucide="settings" size="20"></i>
+        </button>
+    </div>
+
+    <div id="settings-modal" class="modal squircle">
+        <h3 class="text-sm font-bold mb-4">Workspace Settings</h3>
+        <div class="space-y-4">
+            <div>
+                <label class="text-[10px] uppercase font-bold text-gray-400 block mb-2">Workspace Color</label>
+                <div class="flex gap-2">
+                    <button onclick="setTheme('#f5f5f7')" class="w-6 h-6 rounded-full bg-[#f5f5f7] border"></button>
+                    <button onclick="setTheme('#e5e7eb')" class="w-6 h-6 rounded-full bg-gray-200 border"></button>
+                    <button onclick="setTheme('#fee2e2')" class="w-6 h-6 rounded-full bg-red-100 border"></button>
+                    <button onclick="setTheme('#dcfce7')" class="w-6 h-6 rounded-full bg-green-100 border"></button>
+                </div>
+            </div>
+            <div>
+                <label class="text-[10px] uppercase font-bold text-gray-400 block mb-2">Page Orientation</label>
+                <div class="flex gap-2">
+                    <button onclick="setPageStyle('portrait')" class="text-xs bg-gray-100 px-3 py-1 rounded-md">Vertical</button>
+                    <button onclick="setPageStyle('landscape')" class="text-xs bg-gray-100 px-3 py-1 rounded-md">Horizontal</button>
+                </div>
+            </div>
         </div>
-        <div id="stat-count" class="text-xs font-semibold text-gray-500 uppercase tracking-widest">0 Words</div>
-        <div class="text-[10px] bg-green-500/10 text-green-600 px-2 py-1 rounded-md font-bold uppercase">Auto-Saved</div>
-    </footer>
+    </div>
+
+    <div id="ai-modal" class="modal squircle">
+        <h3 class="text-sm font-bold mb-2 flex items-center gap-2 text-blue-600">
+            <i data-lucide="brain" size="14"></i> AI Assistant
+        </h3>
+        <p class="text-[10px] text-gray-400 mb-4">Paste your API key in the code to enable.</p>
+        <button onclick="askAI('summarize')" class="w-full text-left text-xs p-2 hover:bg-blue-50 rounded-lg mb-1">📝 Summarize Document</button>
+        <button onclick="askAI('fix')" class="w-full text-left text-xs p-2 hover:bg-blue-50 rounded-lg">✨ Improve Grammar</button>
+        <div id="ai-response" class="mt-4 text-[11px] bg-gray-50 p-2 rounded-lg max-h-32 overflow-y-auto hidden"></div>
+    </div>
 
     <script>
-        // Initialization
         lucide.createIcons();
+        const API_KEY = "YOUR_API_KEY_HERE"; // PASTE KEY HERE
 
-        // Core Functions
         function exec(cmd, val = null) { document.execCommand(cmd, false, val); }
 
         function switchMode(mode) {
-            const sections = ['word-editor', 'ppt-editor', 'note-editor'];
-            sections.forEach(s => document.getElementById(s).classList.add('hidden'));
+            ['word-editor', 'ppt-editor', 'note-editor'].forEach(s => document.getElementById(s).classList.add('hidden'));
             document.getElementById(mode + '-editor').classList.remove('hidden');
-            
-            // UI Button styling
-            ['word', 'ppt', 'note'].forEach(m => {
-                document.getElementById('btn-'+m).classList.remove('bg-white', 'shadow-sm');
-            });
+            ['word', 'ppt', 'note'].forEach(m => document.getElementById('btn-'+m).classList.remove('bg-white', 'shadow-sm'));
             document.getElementById('btn-'+mode).classList.add('bg-white', 'shadow-sm');
-            
-            // Toggle toolbar visibility
-            document.getElementById('formatting-tools').style.opacity = (mode === 'word') ? "1" : "0.3";
+            document.getElementById('tools').style.opacity = (mode === 'word') ? "1" : "0.2";
         }
 
-        // Feature: Find and Replace
-        function findReplace() {
-            const find = prompt("Search for:");
-            if (!find) return;
-            const replace = prompt("Replace with:");
+        function toggleModal(id) {
+            const modal = document.getElementById(id);
+            const isVisible = modal.style.display === 'block';
+            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+            modal.style.display = isVisible ? 'none' : 'block';
+        }
+
+        function setTheme(color) { document.body.style.backgroundColor = color; }
+
+        function setPageStyle(style) {
             const editor = document.getElementById('word-editor');
-            editor.innerHTML = editor.innerHTML.split(find).join(replace);
+            style === 'landscape' ? editor.classList.add('landscape') : editor.classList.remove('landscape');
         }
 
-        // Feature: Stats Counter
         function updateStats() {
             const text = document.getElementById('word-editor').innerText;
             const words = text.trim() ? text.trim().split(/\s+/).length : 0;
-            document.getElementById('stat-count').innerText = `${words} Words`;
+            document.getElementById('stat-count').innerText = `${words} WORDS`;
         }
 
-        // Feature: PPT Slide Manager
-        function addSlide() {
-            const container = document.getElementById('slide-container');
-            const newSlide = container.firstElementChild.cloneNode(true);
-            newSlide.querySelectorAll('input, textarea').forEach(el => el.value = "");
-            container.appendChild(newSlide);
+        async function askAI(task) {
+            const text = document.getElementById('word-editor').innerText;
+            const responseBox = document.getElementById('ai-response');
+            responseBox.classList.remove('hidden');
+            responseBox.innerText = "Thinking...";
+
+            if(API_KEY === "YOUR_API_KEY_HERE") {
+                responseBox.innerText = "Error: Please add your API Key to the code script first.";
+                return;
+            }
+
+            // This is a template for an OpenAI-compatible call
+            try {
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API_KEY}` },
+                    body: JSON.stringify({
+                        model: "gpt-3.5-turbo",
+                        messages: [{role: "user", content: `${task === 'summarize' ? 'Summarize this' : 'Fix grammar for this'}: ${text}`}]
+                    })
+                });
+                const data = await response.json();
+                responseBox.innerText = data.choices[0].message.content;
+            } catch (err) {
+                responseBox.innerText = "AI Connection Failed.";
+            }
         }
 
-        // Feature: Export PDF
         function exportPDF() {
             const element = document.getElementById('word-editor');
-            const opt = { margin: 10, filename: 'my_document.pdf', html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }};
+            const opt = { margin: 10, filename: 'doc.pdf', html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }};
             html2pdf().set(opt).from(element).save();
         }
-
-        // Feature: Auto-Save to LocalStorage
-        setInterval(() => {
-            localStorage.setItem('office_word', document.getElementById('word-editor').innerHTML);
-            localStorage.setItem('office_note', document.getElementById('raw-note').value);
-        }, 5000);
-
-        window.onload = () => {
-            if(localStorage.getItem('office_word')) document.getElementById('word-editor').innerHTML = localStorage.getItem('office_word');
-            if(localStorage.getItem('office_note')) document.getElementById('raw-note').value = localStorage.getItem('office_note');
-            updateStats();
-        };
     </script>
 </body>
 </html>
